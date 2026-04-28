@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelXML — Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e10;
+    --surface: #18181b;
+    --border: #2a2a2e;
+    --accent: #f97316;
+    --accent2: #fb923c;
+    --text: #e4e4e7;
+    --muted: #71717a;
+    --green: #4ade80;
+    --red: #f87171;
+    --blue: #60a5fa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--accent); }
+
+  .xml-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    background: var(--surface);
+  }
+
+  nav button {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.9rem 1.2rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  nav button:hover { color: var(--text); }
+  nav button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .container { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn.outline {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn.outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.danger { background: var(--red); color: #000; }
+  .btn.small { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
+
+  /* Modal */
+  .modal-bg {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 420px;
+    max-width: 95vw;
+  }
+
+  .modal h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1.4rem;
+  }
+
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface); }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1.4rem;
+    justify-content: flex-end;
+  }
+
+  /* Table */
+  .table-wrap {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    background: var(--surface);
+  }
+
+  th {
+    text-align: left;
+    padding: 0.8rem 1rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 0.8rem 1rem;
+    font-size: 0.88rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tbody tr { transition: background 0.1s; }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+  .actions { display: flex; gap: 0.4rem; }
+
+  .badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(249,115,22,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(249,115,22,0.3);
+  }
+
+  .badge.blue {
+    background: rgba(96,165,250,0.12);
+    color: var(--blue);
+    border-color: rgba(96,165,250,0.3);
+  }
+
+  .badge.green {
+    background: rgba(74,222,128,0.12);
+    color: var(--green);
+    border-color: rgba(74,222,128,0.3);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  /* XML Panel */
+  .xml-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .xml-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+  }
+
+  .xml-toolbar span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  pre {
+    padding: 1.2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    color: var(--text);
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  pre .tag { color: #f97316; }
+  pre .attr { color: #60a5fa; }
+  pre .val { color: #4ade80; }
+
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    z-index: 999;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { border-left-color: var(--red); }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+  }
+
+  .stat-card .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.4rem;
+  }
+
+  .stat-card .value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Hotel<span>XML</span></div>
+  <div class="xml-badge">XML Backend</div>
+</header>
+
+<nav>
+  <button class="active" onclick="switchTab('dashboard')">Dashboard</button>
+  <button onclick="switchTab('hotels')">Hotels</button>
+  <button onclick="switchTab('guests')">Guests</button>
+  <button onclick="switchTab('bookings')">Bookings</button>
+  <button onclick="switchTab('xmlview')">XML View</button>
+</nav>
+
+<div class="container">
+
+  <!-- DASHBOARD -->
+  <div id="tab-dashboard" class="section active">
+    <div class="section-header">
+      <h2>Overview</h2>
+    </div>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="label">Hotels</div>
+        <div class="value" id="stat-hotels">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Guests</div>
+        <div class="value" id="stat-guests">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Bookings</div>
+        <div class="value" id="stat-bookings">—</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Guest</th>
+            <th>Hotel</th>
+            <th>City</th>
+            <th>Nights</th>
+          </tr>
+        </thead>
+        <tbody id="dashboard-table">
+          <tr><td colspan="4" class="empty-state">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- HOTELS -->
+  <div id="tab-hotels" class="section">
+    <div class="section-header">
+      <h2>Hotels</h2>
+      <button class="btn" onclick="openModal('hotel')">+ Add Hotel</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>City</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="hotels-table">
+          <tr><td colspan="4" class="empty-state">No hotels yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GUESTS -->
+  <div id="tab-guests" class="section">
+    <div class="section-header">
+      <h2>Guests</h2>
+      <button class="btn" onclick="openModal('guest')">+ Add Guest</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="guests-table">
+          <tr><td colspan="4" class="empty-state">No guests yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BOOKINGS -->
+  <div id="tab-bookings" class="section">
+    <div class="section-header">
+      <h2>Bookings</h2>
+      <button class="btn" onclick="openModal('booking')">+ Add Booking</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Hotel</th>
+            <th>Guest</th>
+            <th>Nights</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="bookings-table">
+          <tr><td colspan="5" class="empty-state">No bookings yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- XML VIEW -->
+  <div id="tab-xmlview" class="section">
+    <div class="section-header">
+      <h2>Raw XML Storage</h2>
+      <button class="btn outline" onclick="loadXML()">↺ Refresh</button>
+    </div>
+    <div class="xml-panel">
+      <div class="xml-toolbar">
+        <span>data.xml</span>
+        <span id="xml-size">—</span>
+      </div>
+      <pre id="xml-content">Loading...</pre>
+    </div>
+  </div>
+
+</div>
+
+<!-- HOTEL MODAL -->
+<div class="modal-bg" id="modal-hotel">
+  <div class="modal">
+    <h3 id="hotel-modal-title">Add Hotel</h3>
+    <input type="hidden" id="hotel-id">
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="hotel-name" placeholder="Grand Palace">
+    </div>
+    <div class="field">
+      <label>City</label>
+      <input type="text" id="hotel-city" placeholder="Paris">
+    </div>
+    <div class="modal-actions">
+      <button class="btn outline" onclick="closeModal('hotel')">Cancel</button>
+      <button class="btn" onclick="saveHotel()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- GUEST MODAL -->
+<div class="modal-bg" id="modal-guest">
+  <div class="modal">
+    <h3 id="guest-modal-title">Add Guest</h3>
+    <input type="hidden" id="guest-id">
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="guest-name" placeholder="John Doe">
+    </div>
+    <div class="field">
+      <label>Phone</label>
+      <input type="text" id="guest-phone" placeholder="+213 555 0000">
+    </div>
+    <div class="modal-actions">
+      <button class="btn outline" onclick="closeModal('guest')">Cancel</button>
+      <button class="btn" onclick="saveGuest()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-bg" id="modal-booking">
+  <div class="modal">
+    <h3 id="booking-modal-title">Add Booking</h3>
+    <input type="hidden" id="booking-id">
+    <div class="field">
+      <label>Hotel</label>
+      <select id="booking-hotel"></select>
+    </div>
+    <div class="field">
+      <label>Guest</label>
+      <select id="booking-guest"></select>
+    </div>
+    <div class="field">
+      <label>Nights</label>
+      <input type="number" id="booking-nights" min="1" placeholder="3">
+    </div>
+    <div class="modal-actions">
+      <button class="btn outline" onclick="closeModal('booking')">Cancel</button>
+      <button class="btn" onclick="saveBooking()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:3001';
+
+// ─── State ────────────────────────────────────────────────────────────────
+let hotels = [], guests = [], bookings = [];
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'xmlview') loadXML();
+  if (name === 'dashboard') renderDashboard();
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────
+function toast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+// ─── API Helpers ──────────────────────────────────────────────────────────
+async function api(method, endpoint, body) {
+  const res = await fetch(API + endpoint, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error');
+  return data;
+}
+
+// ─── Load all ─────────────────────────────────────────────────────────────
+async function loadAll() {
+  [hotels, guests, bookings] = await Promise.all([
+    api('GET', '/hotels'),
+    api('GET', '/guests'),
+    api('GET', '/bookings')
+  ]);
+  renderHotels();
+  renderGuests();
+  renderBookings();
+  renderDashboard();
+}
+
+// ─── HOTELS ───────────────────────────────────────────────────────────────
+function renderHotels() {
+  const tb = document.getElementById('hotels-table');
+  if (!hotels.length) { tb.innerHTML = '<tr><td colspan="4" class="empty-state">No hotels yet</td></tr>'; return; }
+  tb.innerHTML = hotels.map(h => `
+    <tr>
+      <td><span class="badge">${h.id.slice(0,8)}</span></td>
+      <td>${h.name}</td>
+      <td>${h.city}</td>
+      <td class="actions">
+        <button class="btn outline small" onclick='editHotel(${JSON.stringify(h)})'>Edit</button>
+        <button class="btn danger small" onclick="deleteHotel('${h.id}')">Del</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openModal(type) {
+  if (type === 'booking') {
+    document.getElementById('booking-hotel').innerHTML = hotels.map(h => `<option value="${h.id}">${h.name} — ${h.city}</option>`).join('');
+    document.getElementById('booking-guest').innerHTML = guests.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+    document.getElementById('booking-id').value = '';
+    document.getElementById('booking-nights').value = '';
+    document.getElementById('booking-modal-title').textContent = 'Add Booking';
+  }
+  if (type === 'hotel') {
+    document.getElementById('hotel-id').value = '';
+    document.getElementById('hotel-name').value = '';
+    document.getElementById('hotel-city').value = '';
+    document.getElementById('hotel-modal-title').textContent = 'Add Hotel';
+  }
+  if (type === 'guest') {
+    document.getElementById('guest-id').value = '';
+    document.getElementById('guest-name').value = '';
+    document.getElementById('guest-phone').value = '';
+    document.getElementById('guest-modal-title').textContent = 'Add Guest';
+  }
+  document.getElementById('modal-' + type).classList.add('open');
+}
+
+function closeModal(type) {
+  document.getElementById('modal-' + type).classList.remove('open');
+}
+
+async function saveHotel() {
+  const id = document.getElementById('hotel-id').value;
+  const name = document.getElementById('hotel-name').value.trim();
+  const city = document.getElementById('hotel-city').value.trim();
+  if (!name || !city) return toast('Fill all fields', true);
+  try {
+    if (id) { await api('PUT', `/hotels/${id}`, { name, city }); toast('Hotel updated'); }
+    else { await api('POST', '/hotels', { name, city }); toast('Hotel added'); }
+    closeModal('hotel');
+    await loadAll();
+  } catch(e) { toast(e.message, true); }
+}
+
+function editHotel(h) {
+  document.getElementById('hotel-modal-title').textContent = 'Edit Hotel';
+  document.getElementById('hotel-id').value = h.id;
+  document.getElementById('hotel-name').value = h.name;
+  document.getElementById('hotel-city').value = h.city;
+  document.getElementById('modal-hotel').classList.add('open');
+}
+
+async function deleteHotel(id) {
+  if (!confirm('Delete hotel and its bookings?')) return;
+  try { await api('DELETE', `/hotels/${id}`); toast('Deleted'); await loadAll(); }
+  catch(e) { toast(e.message, true); }
+}
+
+// ─── GUESTS ───────────────────────────────────────────────────────────────
+function renderGuests() {
+  const tb = document.getElementById('guests-table');
+  if (!guests.length) { tb.innerHTML = '<tr><td colspan="4" class="empty-state">No guests yet</td></tr>'; return; }
+  tb.innerHTML = guests.map(g => `
+    <tr>
+      <td><span class="badge blue">${g.id.slice(0,8)}</span></td>
+      <td>${g.name}</td>
+      <td>${g.phone}</td>
+      <td class="actions">
+        <button class="btn outline small" onclick='editGuest(${JSON.stringify(g)})'>Edit</button>
+        <button class="btn danger small" onclick="deleteGuest('${g.id}')">Del</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function saveGuest() {
+  const id = document.getElementById('guest-id').value;
+  const name = document.getElementById('guest-name').value.trim();
+  const phone = document.getElementById('guest-phone').value.trim();
+  if (!name || !phone) return toast('Fill all fields', true);
+  try {
+    if (id) { await api('PUT', `/guests/${id}`, { name, phone }); toast('Guest updated'); }
+    else { await api('POST', '/guests', { name, phone }); toast('Guest added'); }
+    closeModal('guest');
+    await loadAll();
+  } catch(e) { toast(e.message, true); }
+}
+
+function editGuest(g) {
+  document.getElementById('guest-modal-title').textContent = 'Edit Guest';
+  document.getElementById('guest-id').value = g.id;
+  document.getElementById('guest-name').value = g.name;
+  document.getElementById('guest-phone').value = g.phone;
+  document.getElementById('modal-guest').classList.add('open');
+}
+
+async function deleteGuest(id) {
+  if (!confirm('Delete guest and their bookings?')) return;
+  try { await api('DELETE', `/guests/${id}`); toast('Deleted'); await loadAll(); }
+  catch(e) { toast(e.message, true); }
+}
+
+// ─── BOOKINGS ─────────────────────────────────────────────────────────────
+function renderBookings() {
+  const tb = document.getElementById('bookings-table');
+  if (!bookings.length) { tb.innerHTML = '<tr><td colspan="5" class="empty-state">No bookings yet</td></tr>'; return; }
+  tb.innerHTML = bookings.map(b => `
+    <tr>
+      <td><span class="badge green">${b.id.slice(0,8)}</span></td>
+      <td>${b.hotel ? b.hotel.name : b.hotel_id}</td>
+      <td>${b.guest ? b.guest.name : b.guest_id}</td>
+      <td>${b.nights} night${b.nights > 1 ? 's' : ''}</td>
+      <td class="actions">
+        <button class="btn outline small" onclick='editBooking(${JSON.stringify(b)})'>Edit</button>
+        <button class="btn danger small" onclick="deleteBooking('${b.id}')">Del</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function saveBooking() {
+  const id = document.getElementById('booking-id').value;
+  const hotel_id = document.getElementById('booking-hotel').value;
+  const guest_id = document.getElementById('booking-guest').value;
+  const nights = parseInt(document.getElementById('booking-nights').value);
+  if (!hotel_id || !guest_id || !nights) return toast('Fill all fields', true);
+  try {
+    if (id) { await api('PUT', `/bookings/${id}`, { hotel_id, guest_id, nights }); toast('Booking updated'); }
+    else { await api('POST', '/bookings', { hotel_id, guest_id, nights }); toast('Booking added'); }
+    closeModal('booking');
+    await loadAll();
+  } catch(e) { toast(e.message, true); }
+}
+
+function editBooking(b) {
+  document.getElementById('booking-modal-title').textContent = 'Edit Booking';
+  document.getElementById('booking-hotel').innerHTML = hotels.map(h => `<option value="${h.id}" ${h.id===b.hotel_id?'selected':''}>${h.name} — ${h.city}</option>`).join('');
+  document.getElementById('booking-guest').innerHTML = guests.map(g => `<option value="${g.id}" ${g.id===b.guest_id?'selected':''}>${g.name}</option>`).join('');
+  document.getElementById('booking-id').value = b.id;
+  document.getElementById('booking-nights').value = b.nights;
+  document.getElementById('modal-booking').classList.add('open');
+}
+
+async function deleteBooking(id) {
+  if (!confirm('Delete this booking?')) return;
+  try { await api('DELETE', `/bookings/${id}`); toast('Deleted'); await loadAll(); }
+  catch(e) { toast(e.message, true); }
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────
+function renderDashboard() {
+  document.getElementById('stat-hotels').textContent = hotels.length;
+  document.getElementById('stat-guests').textContent = guests.length;
+  document.getElementById('stat-bookings').textContent = bookings.length;
+  const tb = document.getElementById('dashboard-table');
+  if (!bookings.length) { tb.innerHTML = '<tr><td colspan="4" class="empty-state">No bookings yet</td></tr>'; return; }
+  tb.innerHTML = bookings.map(b => `
+    <tr>
+      <td>${b.guest ? b.guest.name : '—'}</td>
+      <td>${b.hotel ? b.hotel.name : '—'}</td>
+      <td>${b.hotel ? b.hotel.city : '—'}</td>
+      <td>${b.nights}</td>
+    </tr>`).join('');
+}
+
+// ─── XML VIEW ─────────────────────────────────────────────────────────────
+async function loadXML() {
+  const pre = document.getElementById('xml-content');
+  const sizeEl = document.getElementById('xml-size');
+  try {
+    const res = await fetch(`${API}/xml-raw`);
+    const text = await res.text();
+    sizeEl.textContent = (new Blob([text]).size / 1024).toFixed(1) + ' KB';
+    // Syntax highlight
+    const highlighted = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/(&lt;\/?[\w]+)/g, '<span class="tag">$1</span>')
+      .replace(/(&gt;)/g, '<span class="tag">$1</span>')
+      .replace(/"([^"]+)"/g, '"<span class="val">$1</span>"');
+    pre.innerHTML = highlighted;
+  } catch(e) {
+    pre.textContent = 'Could not load XML. Is the backend running?';
+  }
+}
+
+// Close modal on bg click
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+});
+
+// Init
+loadAll();
+</script>
+</body>
+</html>
