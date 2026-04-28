@@ -1,10 +1,12 @@
 # HotelXML — Hotel Management System (XML Backend)
 
 ## Stack
+
 - **Backend**: Node.js + Express — stores all data in `data.xml`
 - **Frontend**: Plain HTML/CSS/JS — no build step needed
 
 ## Structure
+
 ```
 hotel-xml/
 ├── backend/
@@ -18,6 +20,7 @@ hotel-xml/
 ## Run
 
 ### 1. Start the backend
+
 ```bash
 cd backend
 node server.js
@@ -25,27 +28,11 @@ node server.js
 ```
 
 ### 2. Open the frontend
+
 Open `frontend/index.html` in your browser (double-click or use a local server).
 
-## API Endpoints
-
-| Method | Endpoint         | Description          |
-|--------|-----------------|----------------------|
-| GET    | /hotels          | List all hotels      |
-| POST   | /hotels          | Create hotel         |
-| PUT    | /hotels/:id      | Update hotel         |
-| DELETE | /hotels/:id      | Delete hotel + bookings |
-| GET    | /guests          | List all guests      |
-| POST   | /guests          | Create guest         |
-| PUT    | /guests/:id      | Update guest         |
-| DELETE | /guests/:id      | Delete guest + bookings |
-| GET    | /bookings        | List bookings (with joined hotel/guest) |
-| POST   | /bookings        | Create booking       |
-| PUT    | /bookings/:id    | Update booking       |
-| DELETE | /bookings/:id    | Delete booking       |
-| GET    | /xml-raw         | View raw XML file    |
-
 ## XML Schema
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <database>
